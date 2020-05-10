@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>Question Example</title>
+  <meta name="description" content="Question">
+  <meta name="author" content="Ragupathi">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+<a href="question.html" >Go to Question </a>
+<div class="modal fade" id="questionModal" tabindex="-1" role="dialog" aria-labelledby="title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div id="question"></div>
+                    <div class="row" id="answer"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="submit" type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(function() {
+
+        const $question = $('#question'), $answer = $('#answer'), $title = $('#title'), $submit = $('#submit'), data = new Array(), ansData = new Array();
+
+        if(localStorage.getItem('question') !== null){
+            data.push.apply(data, JSON.parse(localStorage.getItem('question')).flat(Infinity));
+            console.log( 'Question', data);
+        }
+
+        if(localStorage.getItem('answer') !== null){
+            ansData.push.apply(ansData, JSON.parse(localStorage.getItem('answer')).flat(Infinity));
+            console.log( 'Answer', ansData);
+        }
+
+        function setAnswer( data, choose ){
+            
+            let str = '';
+            if(choose != 'text'){
+                let display = '';
+                data = JSON.parse(data);
+                $.each(data, function(i, item){
+                    if(item['answer'] == ''){
+                        display = 'd-none';
+                    } else {
+                        display = '';
+                    }
+                    str += `<div class="col-12 ${ display }">
+                                <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="${ choose }" style="left:unset;opacity:unset" class="form-check-input ans" name="ans" value="`+ i +`" >
+                                    ${ item['answer'] }
+                                </label>
+                                </div>
+                            </div>`;
+                });
+            } else {
+                str = `<div class="col-12">
+                            <div class="form-group">
+                            <label for="ans">Report</label>
+                            <textarea  class="form-control" id="ans" name="ans" rows="3"></textarea>
+                            </div>
+                        </div>`;
+            }
+            return str;
+        }
+
+
+        function getQuestion(){ 
+
+            if( Array.isArray(data) && data.length > 0){
+                let item = data[0];
+
+                $question.html(item['question']);                            
+                $answer.html( setAnswer(item['ans'], item['choose']) );
+                $title.html(item['title']);
+
+                $("#questionModal").modal('show');
+            } else {
+                $("#questionModal").modal('hide');
+            }
+
+        }
+
+        getQuestion();
+
+
+        $(document).on('click', '#submit',function(e){
+            let item = data[0], answer;
+            //console.log(allDetails);
+            switch( item['choose'] ){
+                case 'text' :
+                    item.userAnswer = $('#ans').val().trim();
+                    break;
+                case 'radio' :
+                case 'checkbox' :
+                    let arrDetails = new Array();
+                    $('input[name="ans"]:checked').each(function(i){
+                        arrDetails.push($(this).val());
+                    });
+                    item.userAnswer = arrDetails.join(',');
+                break;
+            }
+
+            /////// Question
+            data.shift();
+            localStorage.setItem('question', JSON.stringify( data ));
+            /////// Answer
+            ansData.push(item);
+            localStorage.setItem('answer', JSON.stringify( ansData ));
+            
+            getQuestion();
+        });
+       
+    });
+
+</script>
+
+</body>
+
+
+<!-- Mirrored from www.wrappixel.com/demos/admin-templates/material-pro/minisidebar/starter-kit.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 11 Feb 2019 11:15:50 GMT -->
+</html>
